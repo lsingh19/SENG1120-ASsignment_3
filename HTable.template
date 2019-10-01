@@ -1,0 +1,114 @@
+/*
+* File Name: HTable.template
+* Course: SENG1120
+* Assessment: Assignment 3
+*/
+
+template <typename value_type>
+HTable<value_type>::HTable()
+{
+	for(int i = 0; i < SIZE; i++) 
+	{
+		// The entire array is filled with the default constructor for the value_type being used
+		hash[i] = value_type();		
+	}
+}
+
+template <typename value_type>
+HTable<value_type>::HTable(const value_type& data)
+{
+	for(int i = 0; i < SIZE; i++) 
+	{
+		// The entire array is filled with the default constructor for the value_type being used
+		hash[i] = value_type();		
+	}
+	add(data); 		// calling the 'add' function to add the data to the array
+}
+
+template <typename value_type>
+HTable<value_type>::~HTable()
+{
+	for (int i=0; i < SIZE; i++)
+	{
+		hash[i] = "";			
+		// Setting each slot within the array to "" which deletes the data within the slot 
+		// as it goes out of scope and since it's on the stack it will automatically be deleted
+	}
+	// the hash array will itself be deleted by the stack once it goes out of scope.
+}
+
+template <typename value_type>
+const int HTable<value_type>::hashfunc(const value_type& data) const
+{
+	int words = data.length();  	// stores the length of the data/string in a interger variable
+	int total = 0; 					// a variable to store the total ASCII values for the each character 
+	for (int i=0; i < words; i++)
+	{
+		total += (int)data.at(i);	// The ASCII value for each character in the data is added to the 'total' variable
+	}
+	return (total%SIZE);			// returning the remainder that remains after dividing total by the 'SIZE' variable.
+}
+
+template <typename value_type>
+void HTable<value_type>::add(const value_type& data)
+{
+	int position =  hashfunc(data); 	// the hash function is called to determine where the data will be placed within the array.
+	
+	// if the position within the array has the default value for the value_type being used then this 'if' statement is executed. 	
+	if (hash[position] == value_type()) 	
+	{
+		hash[position] = data; 		// setting the data in the position returned by the 'hash' function within the array. 
+	}
+	else 	// if the position is already taken then a message will be returned that the position is already taken within the array. 
+	{
+		cout << "The postion " << position << " has an item in that position" << endl;   
+	}
+}
+
+template <typename value_type>
+void HTable<value_type>::remove(const value_type& data)
+{
+	// The 'hashfunc' function will return a value which is where the data should be placed within the array. 
+	// The returned value is stored in the integer variable 'position'
+	int position = hashfunc(data);	
+	
+	// if the position within the array has the default value then that means that there is nothing within the array at that position
+	// Hence a message will be displayed that the data doesn't exists within the hash table
+	if (hash[position] == value_type())
+	{
+		cout << "The input data does not exists within the hash table" << endl; 
+	}
+	else 
+	{
+		// since the position within the array is not empty meaning that data exists within the array 
+		// then that positon within the array has it's data replaced by the default value for value_type being used which essentially deletes the data within the array. 
+		// the old data will be deleted automatically by the stack as it goes out of scope. 
+		hash[position] = value_type(); 	
+	}
+}
+
+template <typename value_type>
+const string HTable<value_type>::printTable() const
+{
+	// I did have the option to make it a string variable but didn't go with that option as it might affect the insertion and deletion time for the hash table
+	// Hence doing it this way makes the code more generic and ensures that there isn't a big difference between the BSTree and HTable as using stringstream increase the 
+	// time. 
+	stringstream output; 					// declaring a stringstream variable to hold all the data in the hash table.
+	
+	// The for-loop ensure that we check each slot within the array. 
+	for (int i = 0; i < SIZE; i++)	
+	{
+		if (hash[i] != value_type())		// if the array position is not equal to the the default value then that means that there is something at that position.
+		{
+			output << " " << hash[i] << " "; 	// adding the data to the 'output' variable.
+		}
+	}
+	return output.str(); 	// returning the 'output' variable as a string by calling the 'str' function within stringstream.
+}
+
+template <typename value_type>
+ostream& operator << (ostream& out, HTable<value_type> hashtable) 
+{
+	out << hashtable.printTable();		// the string returned from the 'printTable' function is stored in 'out'.
+	return out; 						// returning the 'out'. 
+}

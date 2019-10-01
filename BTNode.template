@@ -1,0 +1,152 @@
+/*
+* File Name: BTNode.template
+* Course: SENG1120
+* Assessment: Assignment 3
+*/
+
+// -------------------------------------------------------------------------------
+//								Constructors 
+// -------------------------------------------------------------------------------
+template <typename value_type> 
+BTNode<value_type>::BTNode()
+{
+	left = NULL;			// setting left pointer to NULL
+	right = NULL;			// setting right pointer to NULL
+	parent = NULL; 			// setting parent pointer to NULL
+	data = value_type(); 	// calling the default constructor of the value_type to set the 'data' member variable. 
+}
+
+template <typename value_type> 
+BTNode<value_type>::BTNode(const value_type& init_data)
+{
+	left = NULL;			// setting left pointer to NULL
+	right = NULL;			// setting right pointer to NULL
+	parent = NULL; 			// setting parent pointer to NULL 
+	data = init_data;		// the data is set to the input parameter
+}
+
+
+// -------------------------------------------------------------------------------
+//								Destructor 
+// -------------------------------------------------------------------------------
+template <typename value_type> 
+BTNode<value_type>::~BTNode()
+{
+	// The 'left' and 'right' pointer will be deleted and with it any other node that are the children of this node
+	// the tree will exploded unless the pointers in the binary search tree are carefully set when removing or adding 
+	// nodes.
+	
+	delete left;			// deleting the left pointer
+	delete right;			// deleting the right pointer 
+	parent = NULL;			// setting the parent pointer to NULL 
+	
+	// the data will automatically be destroyed as it is created on the stack. 
+	// the following lines of code are ways to delete the data in the node, but they all result in a segmentation 
+	// fault (core dumped) error.
+	// data.~value_type();
+	// data.~data();
+	// data = NULL;
+	
+	// Since the data is created on the stack it means that it will automatically be deleted from the program once it goes out of
+	// scope by the implicit automatic garbage collection on the stack. Although this will work, in reality the user/programmer 
+	// should be able to delete the data on command. 
+}
+
+// -------------------------------------------------------------------------------
+//								Setter Methods 
+// -------------------------------------------------------------------------------
+
+template <typename value_type> 
+void BTNode<value_type>::set_left(BTNode<value_type>* left_child)
+{
+	left = left_child;			// settting the left pointer in the current BTNode to the input parameter
+}
+
+template <typename value_type> 
+void BTNode<value_type>::set_right(BTNode<value_type>* right_child)
+{
+	right = right_child;		// settting the right pointer in the current BTNode to the input parameter
+}
+
+template <typename value_type> 
+void BTNode<value_type>::set_parent(BTNode<value_type>* parent_node)
+{
+	parent = parent_node;		// settting the parent pointer in the current BTNode to the input parameter
+}
+
+template <typename value_type> 
+void BTNode<value_type>::set_data(const value_type& init_data)
+{
+	data = init_data; 			// setting the data to the input parameter
+}
+
+// -------------------------------------------------------------------------------
+//								Getter Methods 
+// -------------------------------------------------------------------------------
+
+template <typename value_type> 
+BTNode<value_type>* BTNode<value_type>::get_left()
+{
+	return left;				// returning the left child of the current BTNode
+}
+
+template <typename value_type> 
+const BTNode<value_type>* BTNode<value_type>::get_left() const 
+{
+	return left;				// returning the left child of the current BTNode, but as a const BTNode
+}
+
+template <typename value_type>  
+BTNode<value_type>* BTNode<value_type>::get_right()
+{
+	return right;				// returning the right child of the current BTNode
+}
+
+template <typename value_type>  
+const BTNode<value_type>* BTNode<value_type>::get_right() const
+{
+	return right;				// returning the right child of the current BTNode, but as a const BTNode
+}
+
+template <typename value_type>  
+BTNode<value_type>* BTNode<value_type>::get_parent()
+{
+	return parent; 				// returning the parent node of the current BTNode
+}
+
+template <typename value_type>  
+const BTNode<value_type>* BTNode<value_type>::get_parent() const
+{
+	return parent; 				// returning the parent node of the current BTNode, but as a const node
+}
+
+template <typename value_type>  
+value_type& BTNode<value_type>::get_data()
+{
+	return data; 				// returning a reference to the data within the node 
+} 
+
+template <typename value_type>  
+const value_type BTNode<value_type>::get_data() const
+{
+	return data; 				// returning a copy of the data within the node. 
+} 
+
+// -------------------------------------------------------------------------------
+//								Check Methods 
+// -------------------------------------------------------------------------------
+template <typename value_type>  
+const bool BTNode<value_type>::is_leaf() const
+{
+	return ((left == NULL) && (right == NULL));		
+	// if the right and left are set to NULL then boolean value of true is returned, if this is not the 
+	// case then false is returned. 
+}
+
+template <typename value_type>  
+const bool BTNode<value_type>::has_one_child() const
+{
+	return (((left == NULL) && (right != NULL)) || ((left != NULL) && (right == NULL)));
+	// if the left or right is not set to NULL and the other pointer is set to NULL then boolean value of true is returned
+	// if this is not the case then false is returned
+}

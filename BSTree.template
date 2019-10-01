@@ -1,0 +1,402 @@
+/*
+* File Name: BSTree.template
+* Course: SENG1120
+* Assessment: Assignment 3
+*/
+
+// -----------------------------------------------------
+//					Constructors 
+// -----------------------------------------------------
+template <typename value_type> 
+BSTree<value_type>::BSTree()
+{
+	root = NULL;		// setting the root to NULL
+}
+
+template <typename value_type> 
+BSTree<value_type>::BSTree(const value_type& data)
+{
+	add(data);		// the add function is called to add the data to the tree
+}
+
+// -----------------------------------------------------
+//					Destructor 
+// ----------------------------------------------------- 
+template <typename value_type>
+BSTree<value_type>::~BSTree()
+{
+	// deleting the root will cause a chain effect on every node in the binary search tree
+	// This way the entire tree will be deleted and no memory leaks. 
+	delete root;
+	
+	// As discuseed with Tim there is another way of deleting the tree by using a recursive function but that leads to memory leaks 
+	// i've left the recursive function in the file (at the bottom of this file) but it's commented out.  
+}
+
+// -----------------------------------------------------
+//					Public Methods 
+// ----------------------------------------------------- 
+
+template <typename value_type> 
+void BSTree<value_type>::add(const value_type& data)
+{
+	add_data(data, root); 		
+	// calling the private 'add_data' function with the input parameter of provided data and root. 
+}
+
+template <typename value_type>
+void BSTree<value_type>::remove(const value_type& data)
+{
+	if (root == NULL)
+	{
+		cout << "The tree is empty" << endl;	// the tree is empty and there is nothing that can be removed from it.
+	}
+	else 
+	{
+		remove_data(root, data);  					// remove function starts at the root node 
+	}
+}
+
+template <typename value_type> 
+const string BSTree<value_type>::printInOrder() const
+{
+	// i did have the option to make the variable 'data' a string variable, but decided not too as it makes the code more generic.
+	stringstream data; 
+	printInOrderPrivate(root, data); 	// a call to the method 'printInOrderPrivate' with the input paramter of root and data 
+	return data.str(); 					// calling to 'str' method in stringstream to convert the variable 'data' to a string which is then returned 
+}
+
+// -----------------------------------------------------
+//					Private Methods 
+// -----------------------------------------------------
+template <typename value_type> 
+void BSTree<value_type>::add_data(const value_type& data, BTNode<value_type>* current_node)
+{
+	// if the root equals NULL then the tree is empty so an instance BTNode will be create with the provided data and the BTNode is assigned to the root. 
+	if (root == NULL)	
+	{
+		root = new BTNode<value_type>(data); 
+	}
+	// the provided data is less than the current_node data. 
+	else if (compare(data,current_node->get_data()) < 0)
+	{
+		// the left child is not empty
+		if (current_node->get_left() != NULL)
+		{
+			// a recurive call to the 'add_data' function with the input parameter of data and left child of the current node
+			add_data(data, current_node->get_left());
+		}
+		else 	
+		{
+			// Creating a temporary pointer that will points to a newly create instance of BTNode with the data stored within the node
+			BTNode<value_type>* temp_node = new BTNode<value_type>(data); 	
+			current_node->set_left(temp_node); 		// setting the left pointer of the current_node to the temp_node
+			temp_node->set_parent(current_node);	// setting the parent pointer of the temp_node to the current_node
+			temp_node = NULL;						// setting the temp_node to NULL 
+		}
+	}
+	
+	// the provided data is greater than the current node data
+	else if (compare(data,current_node->get_data()) > 0)
+	{
+		// the right child of the current_node 
+		if (current_node->get_right() != NULL)
+		{
+			// a recurive call to the 'add_data' function with the input parameter of data and right child of the current node
+			add_data(data, current_node->get_right());
+		}
+		else 
+		{
+			// Creating a temporary pointer that will points to a newly create instance of BTNode with the data stored within the node
+			BTNode<value_type>* temp_node = new BTNode<value_type>(data); 
+			current_node->set_right(temp_node); 	// setting the right pointer of the current_node to the temp_node
+			temp_node->set_parent(current_node);	// setting the parent pointer of the temp_node to the current_node
+			temp_node = NULL;						// setting the temp_node to NULL 
+		}
+	}
+	else 
+	{
+		// in this case, the input data match the data of the current_node. So the data of the current_node is replaced with
+		// the input data. 
+		current_node->set_data(data);
+		return;
+	}
+}
+
+
+template <typename value_type>
+const int BSTree<value_type>::compare(const value_type& a, const value_type& b) const
+{
+	return a.compare(b);			// Returning value that is recieved the comparison between two inputs  
+}
+
+
+template <typename value_type> 
+void BSTree<value_type>::remove_data(BTNode<value_type>* current_node,const value_type& data)
+{
+	if (current_node == NULL)
+	{
+		cout << "The data does not exist within the tree" << endl;		// The data does not exists within the binary search tree. 
+		return;
+	}
+
+	// the output from the 'compare' function is stored into the integer variable 'relation'
+	int relation = compare(data, current_node->get_data());  
+	
+	// the data is greater than the current node data, so we move to the right sideof the current node
+	if (relation > 0)
+	{
+		remove_data(current_node->get_right(), data); 
+	}
+
+	// the data is less than the current node data so we move to the left side of the current node. 
+	else if (relation < 0)
+	{
+		remove_data(current_node->get_left(), data);
+	}
+	
+	// if you found the node to remove 
+	else 
+	{
+		// ----------------------------------------------------------------------
+		//			case 1 - leaf 
+		// ----------------------------------------------------------------------
+		
+		if (current_node->is_leaf())   	// check to see the current node is a leaf node in BSTree
+		{
+			// The data is the same as the root and the root has no children. 
+			if (compare(root->get_data(), data) == 0)
+			{
+				root = NULL;
+			}
+			
+			// for normal nodes, manage any parent links
+			else 
+			{
+				// the data of the current node is greater than data of the parent node, meaning that the
+				// current node is the right child of the parent node.
+				if (compare(current_node->get_data(), current_node->get_parent()->get_data()) > 0)
+				{
+					current_node->get_parent()->set_right(NULL);	// setting the right child parent node to NULL 
+				}
+				else 
+				{
+					// the current node data is less than the parent node data meaning that the current node is the left child of the parent node 
+					// so we set the left child of the parent node to NULL 
+					current_node->get_parent()->set_left(NULL);
+				}
+			}
+			// Setting the left and right child of the current node to NULL, which allows us to have 'delete left' and 'delete right' in the BTNode destructor
+			current_node->set_left(NULL);
+			current_node->set_right(NULL);
+			delete current_node;				// deleting the current node.
+		}
+		
+		// ----------------------------------------------------------------------
+		//			case 2 - one child 
+		// ----------------------------------------------------------------------
+		
+		// the current node only has one child in the BSTree
+		else if (current_node->has_one_child())  // check to see if the current node has only one child.
+		{
+			// the root data matchs the input data
+			if (compare(root->get_data(), data) == 0)
+			{
+				// the child of the current node is on the right side of the current node. 
+				if (current_node->get_right() != NULL)
+				{
+					// the child node has it's parent set to NULL
+					current_node->get_right()->set_parent(NULL);
+					root = current_node->get_right();				// the child is made the root node of the BSTree
+				}
+				else 
+				{
+					// if the child is not on the right hand side of the current node then that means it's one the left hand side of the current node. 
+					current_node->get_left()->set_parent(NULL);		// setting the child's parent pointer to NULL
+					root = current_node->get_left();				// the left child is made the root node of the BSTree
+				}
+			}
+			
+			// the right child of the current node isn't NULL 
+			else if (current_node->get_right() != NULL)
+			{
+				// the right child of the current node has it parent pointer set to the current node's parent node 
+				current_node->get_right()->set_parent(current_node->get_parent());
+				
+				// if the data is greater than the current node data then this if-statement is executed 
+				if (compare(current_node->get_data(), current_node->get_parent()->get_data()) > 0)
+				{
+					// setting the right child of the current node's parent node to the right child of the current node. 
+					current_node->get_parent()->set_right(current_node->get_right());
+				}
+				else 
+				{
+					// setting the left child of the current node's parent node to the right child of the current node. 
+					current_node->get_parent()->set_left(current_node->get_right());
+				}
+			}
+			
+			else 
+			{
+				// the child is on the left side of the current node
+				
+				// the left child of the current node has its parent pointer set to the parent of the current node. 
+				current_node->get_left()->set_parent(current_node->get_parent());
+				
+				// the current node's data is greater than the parent node's data. 
+				if (compare(current_node->get_data(), current_node->get_parent()->get_data()) > 0)
+				{
+					// the current node's parent has it's right child set to the left child of the current node. 
+					current_node->get_parent()->set_right(current_node->get_left());
+				}
+				
+				else 
+				{
+					// the current node's parent has it's left child set to the left child of the current node. 
+					current_node->get_parent()->set_left(current_node->get_left());
+				}
+			}
+			
+			// Setting the left and right child of the current node to NULL, which allows us to have 'delete left' and 'delete right' in the BTNode destructor
+			current_node->set_left(NULL);
+			current_node->set_right(NULL);
+			delete current_node;
+		}
+		
+		// ----------------------------------------------------------------------
+		//			case 3 - two children
+		// ----------------------------------------------------------------------
+		
+		else 
+		{
+			// find the smallest valued node in the right sub tree which teh temp_node pointer will point too 
+			BTNode<value_type>* temp_node_ = find_min(current_node->get_right());
+			
+			// takes a copy of its data
+			value_type* temp_item_ = new value_type (temp_node_->get_data());
+			
+			// now remove that node using a recursive call with the input (the temporary node and the temporary node's data 
+			remove_data(temp_node_, temp_node_->get_data());
+			
+			// sets the copied data as the current nodes data 
+			current_node->set_data(*temp_item_);
+		}
+	}
+} 
+
+template <typename value_type>
+BTNode<value_type>* BSTree<value_type>::find_min(BTNode<value_type>* current_node) const
+{
+	if (current_node->get_left() != NULL)		// left child of the node is not empty 
+	{
+		return find_min(current_node->get_left());		// recursive call to the function with the input left child 
+	}
+	else 
+	{
+		return current_node; 		
+		// the left child of the current node doesn't point to anything. So we return this node.
+		// essentially reached the minimum value of the sub-tree. 
+	}
+}
+
+
+template <typename value_type> 
+void BSTree<value_type>::printInOrderPrivate(BTNode<value_type>* current_node, stringstream& data) const
+{
+	if (root != NULL) 	// The BSTree contains nodes within it
+	{
+		// checking to see if its possible to go left
+		if (current_node->get_left() != NULL)
+		{
+			// a recursive call to this function with the input parameter of left child of current_node and the stringstream variable 'data'
+			printInOrderPrivate(current_node->get_left(), data);
+		}
+		
+		// storing the data of the current node into the stringstream variable 'data'. 
+		data << current_node->get_data() << " ";
+		
+		// go right is possible
+		if (current_node->get_right() != NULL)
+		{
+			// a recursive call to this function with the input parameter of right child of current_node and the stringstream variable 'data'
+			printInOrderPrivate(current_node->get_right(), data);
+		}
+	}
+	else 
+		return;  
+	
+	// NOTE: since the variable 'data' is a reference parameter, there is no need to create a new stringstream variable for 
+	// each recursive call to this function/method. 
+}
+
+
+template <typename value_type>
+ostream& operator << (ostream& out, BSTree<value_type>& BSTree)
+{
+	out << BSTree.printInOrder();  	// storing the output from the 'printInOrder' function into 'out'
+	return out;						// returning 'out'
+}
+
+// a recursive to delete the entire tree but it will lead to memory leaks. 
+// template <typename value_type>
+// void BSTree<value_type>::delete_tree(BTNode<value_type>* current_node) 
+// {
+	// /*
+	// // if (root != NULL) 	// there is something in the tree
+	// // {
+		// // // checking to see if its possible to go left
+		// // if (current_node->get_left() != NULL)
+		// // {
+			// // delete_tree(current_node->get_left());
+		// // }
+		// // // checkinng to see if its possible to go right
+		// // else if (current_node->get_right() != NULL)
+		// // {
+			// // delete_tree(current_node->get_right());
+		// // }
+		// // else 
+		// // // we can go any further left or right of node. 
+			// // remove_data(current_node->get_data());
+	// // }
+	// // else 
+		// // return;  
+	// // -----------------------------------------------------------------------------
+	
+	// // if (current_node->get_left() != NULL)
+	// // {
+		// // delete_tree(current_node->get_left());
+	// // }
+	
+	// // if (current_node->get_right() != NULL)
+	// // {
+		// // delete_tree(current_node->get_right());
+	// // }
+	
+	// // cout << "deleting: " << current_node->get_data() << endl; 
+	// // delete current_node; 
+	// // return;
+	
+	// */
+	// // -----------------------------------------------------------------------------
+	// // base case when the tree is NULL
+	// if (current_node == NULL)
+	// {
+		// return; 
+	// }
+	// // Post Order Traversal Deletion of the tree
+	
+	// // First recursion on left subtree 
+	// // then recursion on right subtree
+	// // then delete the parent 
+	// if (current_node->get_left() != NULL)
+	// {
+		// delete_tree(current_node->get_left());
+	// }
+	
+	// if (current_node->get_right() != NULL)
+	// {
+		// delete_tree(current_node->get_right());
+	// }
+	// // cout << "Delete Value: " << current_node->get_data() << endl; 
+	// delete current_node; 
+// }
